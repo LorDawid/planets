@@ -28,6 +28,8 @@ class Planet():
 
 		self.orbitPath = []
 
+		self.toSun = 0
+
 	def draw(self, planetList):
 		self.changePositions(planetList)
 
@@ -43,12 +45,13 @@ class Planet():
 		pygame.draw.circle(screen, self.color, (self.drawPosX, self.drawPosY), self.radius / ((250 / self.AU) / SCALE))
 
 	def calculateForce(self, planet):
-		distance = (planet.pos[0] - self.pos[0], planet.pos[1] - self.pos[1])
+		temp = (planet.pos[0] - self.pos[0], planet.pos[1] - self.pos[1])
+		self.distance = math.sqrt(temp[0] ** 2 + temp[1] ** 2)
 
-		self.orbitRadius = math.sqrt(distance[0] ** 2 + distance[1] ** 2)
+		if planet.sun: self.toSun = self.distance
 
-		forceC = self.G * planet.mass * self.mass / self.orbitRadius ** 2
-		theta = math.atan2(distance[1], distance[0])
+		forceC = self.G * planet.mass * self.mass / self.distance ** 2
+		theta = math.atan2(temp[1], temp[0])
 
 		return math.cos(theta) * forceC, math.sin(theta) * forceC
 
@@ -68,12 +71,6 @@ class Planet():
 
 		self.pos = (self.pos[0] + self.velX * TIMESTEP, self.pos[1] + self.velY * TIMESTEP)
 
-TIMESTEP = 14400
-DEFSCALE = SCALE = 250 / Planet.AU
-
-posShiftX = 0
-posShiftY = 0
-
 planets = {
 	"Sun":     Planet((0, 0), 30, (255, 255, 0), 1.98892 * 10**30, 0, True),
 	"Mercury": Planet((0.387 * Planet.AU, 0), 8, (80, 78, 81), 3.30 * 10**23, -47400),
@@ -86,16 +83,21 @@ planets = {
 	"Neptune": Planet((30.07 * Planet.AU, 0), 64, (93, 112, 156), 1.02413 * 10**26, -5430),
 }
 
-#Screen dragging code
+TIMESTEP = 14400
+DEFSCALE = SCALE = 250 / Planet.AU
+
+#Screen dragging values
+posShiftX = 0
+posShiftY = 0
 currentlyPressedR = False
 currentlyPressedL = False
 currentOffset = (0, 0)
 clickPos = (0, 0)
 mouseOffset = (0, 0)
 
+#Used to display game info
 userPlanets = 0
-currentTime = 0
-fps = pygame.time.Clock()
+currentGameTime = 0
 
 while running:
 	clock.tick()
@@ -104,7 +106,7 @@ while running:
 	keys = pygame.key.get_pressed()
 
 	highlightable = [None, ] + list(planets.keys())
-	highlightable.remove("Sun")
+
 
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT: running = 0
@@ -171,7 +173,7 @@ while running:
 		TIMESTEP -= 7200
 		if TIMESTEP < 0: TIMESTEP = 0
 
-	currentTime += TIMESTEP
+	currentGameTime += TIMESTEP
 
 	for planet in planets:
 		planets[planet].draw(planets.values())
@@ -188,14 +190,14 @@ while running:
 		text = font.render(f"{highlightable[currentlyHighlighted]}", True, (255,255,255))
 		screen.blit(text, ((screenRes[0] - text.get_width())/2, 20))
 
-		text = font.render(f"Height: {round(highlightedPlanet.orbitRadius / 1000000)}mln km", True, (255,255,255))
+		text = font.render(f"Height: {round(highlightedPlanet.toSun / 1000000)}mln km", True, (255,255,255))
 		screen.blit(text, ((screenRes[0] - text.get_width())/2, 50))
 
 		text = font.render(f"Velocity: {round(math.sqrt(highlightedPlanet.velX**2+highlightedPlanet.velY**2)/1000, 3)}km/s", True, (255,255,255))
 		screen.blit(text, ((screenRes[0] - text.get_width())/2, 70))
 
 
-	text = font.render(f"Current time: {round(currentTime / 31000000, 2)} earth years", True, (255,255,255))
+	text = font.render(f"Current time: {round(currentGameTime / 31000000, 2)} earth years", True, (255,255,255))
 	screen.blit(text, ((screenRes[0] - text.get_width())/2, 0))
 
 	text = fpsFont.render(str(round(clock.get_fps())), True, (0,255,0))

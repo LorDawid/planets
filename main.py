@@ -1,4 +1,4 @@
-import pygame, math
+import pygame, math, random
 pygame.init()
 
 screenRes = (800, 800)
@@ -16,19 +16,18 @@ class Planet():
 
 	def __init__(self, pos, radius, color, mass, velY, sun = False, velX = 0):
 		self.pos = pos
-
 		self.velX = velX
 		self.velY = velY
 
 		self.radius = radius
 		self.color = color
-		self.defaultColor = color
 		self.mass = mass
+
 		self.sun = sun
+		self.toSun = 0
 
 		self.orbitPath = []
-
-		self.toSun = 0
+		self.focused = False
 
 	def draw(self, planetList):
 		self.changePositions(planetList)
@@ -38,11 +37,16 @@ class Planet():
 
 		self.orbitPath.append(self.pos)
 
-		orbitPoints = [(point[0] * SCALE + screenRes[0] / 2 + posShiftX, point[1] * SCALE + screenRes[1] / 2 + posShiftY) for point in self.orbitPath]
+		orbitPoints = [(point[0] * SCALE + screenRes[0] / 2 + posShiftX,
+		                point[1] * SCALE + screenRes[1] / 2 + posShiftY)
+						for point in self.orbitPath]
 
 		if len(self.orbitPath) > 1: pygame.draw.lines(screen, tuple(color / 3 for color in self.color), False, orbitPoints, 2)
 
 		pygame.draw.circle(screen, self.color, (self.drawPosX, self.drawPosY), self.radius / ((250 / self.AU) / SCALE))
+
+		if self.focused:
+			pygame.draw.circle(screen, (255, 0, 0), (self.drawPosX, self.drawPosY), self.radius / ((250 / self.AU) / SCALE), 3)
 
 	def calculateForce(self, planet):
 		temp = (planet.pos[0] - self.pos[0], planet.pos[1] - self.pos[1])
@@ -50,7 +54,8 @@ class Planet():
 
 		if planet.sun: self.toSun = self.distance
 
-		forceC = self.G * planet.mass * self.mass / self.distance ** 2
+		try: forceC = self.G * planet.mass * self.mass / self.distance ** 2
+		except ZeroDivisionError: return (0, 0)
 		theta = math.atan2(temp[1], temp[0])
 
 		return math.cos(theta) * forceC, math.sin(theta) * forceC
@@ -148,7 +153,8 @@ while running:
 				positionX = mousePos[0] / SCALE - screenRes[0]/(2*SCALE) - posShiftX/SCALE
 				positionY = mousePos[1] / SCALE - screenRes[1]/(2*SCALE) - posShiftY/SCALE
 
-				planets[f"Planeta {userPlanets + 1}"] = Planet((positionX, positionY), 10, (255,0,0), 5.9742 * 10**28, velocityChange[1] * 100, velX = velocityChange[0] * 100)
+				color = tuple(random.randint(0, 255) for _ in range(3))
+				planets[f"Planeta {userPlanets + 1}"] = Planet((positionX, positionY), 10, color, 5.9742 * 10**24, velocityChange[1] * 100, velX = velocityChange[0] * 100)
 				userPlanets += 1
 
 				currentlyPressedR = False
@@ -177,7 +183,7 @@ while running:
 
 	for planet in planets:
 		planets[planet].draw(planets.values())
-		planets[planet].color = planets[planet].defaultColor
+		planets[planet].focused = False
 
 	currentlyHighlighted = currentlyHighlighted % len(highlightable)
 
@@ -185,12 +191,12 @@ while running:
 	except KeyError: highlightedPlanet = None
 
 	if type(highlightedPlanet) == Planet:
-		highlightedPlanet.color = (0, 255, 0)
+		highlightedPlanet.focused = True
 
 		text = font.render(f"{highlightable[currentlyHighlighted]}", True, (255,255,255))
 		screen.blit(text, ((screenRes[0] - text.get_width())/2, 20))
 
-		text = font.render(f"Height: {round(highlightedPlanet.toSun / 1000000)}mln km", True, (255,255,255))
+		text = font.render(f"Distance to sun: {round(highlightedPlanet.toSun / 1000000)}mln km", True, (255,255,255))
 		screen.blit(text, ((screenRes[0] - text.get_width())/2, 50))
 
 		text = font.render(f"Velocity: {round(math.sqrt(highlightedPlanet.velX**2+highlightedPlanet.velY**2)/1000, 3)}km/s", True, (255,255,255))
@@ -205,6 +211,6 @@ while running:
 
 	pygame.draw.line(screen, (255, 255, 255), (300, 18.5), (500, 18.5))
 
-	clock.tick(120)
+	clock.tick()
 
 	pygame.display.update()

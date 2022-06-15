@@ -91,7 +91,6 @@ planets = {
 TIMESTEP = 14400
 DEFSCALE = SCALE = 250 / Planet.AU
 
-#Screen dragging values
 posShiftX = 0
 posShiftY = 0
 currentlyPressedR = False
@@ -100,7 +99,6 @@ currentOffset = (0, 0)
 clickPos = (0, 0)
 mouseOffset = (0, 0)
 
-#Used to display game info
 userPlanets = 0
 currentGameTime = 0
 

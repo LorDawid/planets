@@ -1,13 +1,13 @@
 <h1>Planets</h1>
 <hr>
-Pygame project illustrating the solar system. Based on Tech with Tim's video, highly modified. <br>
+Reprezentacja układu słonecznego w pygame. Bazowane na filmie od Tech with Tim , mocno zmodyfikowane. <br>
 <hr>
-It now supports features such as:
+Dodano takie funkcje jak:
 <ul>
-<li>More planets (Jupiter, Saturn, Uranus, Neptune)</li>
-<li>Zooming with scroll</li>
-<li>Mouse dragging</li>
-<li>Spawning new planets using right click (drag to give it velocity)</li>
-<li>Speeding up time using down and up arrows</li>
-<li>Getting planet info using left and right arrows</li>
+<li>Więcej planet (Jowisz, Saturn, Uran, Neptun)</li>
+<li>Oddalanie kółkiem myszy</li>
+<li>Poruszanie się myszką</li>
+<li>Tworzenie nowych planet prawym przyciskiem myszy</li>
+<li>Przyspieszenie czasu strzałkami</li>
+<li>Informacje o planecie</li>
 </ul>
